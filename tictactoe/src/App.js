@@ -85,7 +85,7 @@ function App() {
                     <div key={i}>
                         { row.map((col, j) => (
                             <div key={j}>
-                                <button disabled={arr[i][j] !== ' '} className='waves-effect waves-light btn button' onClick={() => playerMove(i, j)}>{ arr[i][j] }</button>
+                                <button disabled={arr[i][j] !== ' '} className='waves-effect waves-light btn blue button' onClick={() => playerMove(i, j)}>{ arr[i][j] }</button>
                             </div>
                         ))}
                     </div>
