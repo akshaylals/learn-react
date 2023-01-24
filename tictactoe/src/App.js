@@ -79,7 +79,7 @@ function App() {
 
     return (
         <div className="App">
-            <h4>Player: { player }</h4>
+            <h4 className='center-align'>Player: { player }</h4>
             <div className="buttons">
                 { arr.map((row, i) => (
                     <div key={i}>
@@ -91,8 +91,8 @@ function App() {
                     </div>
                 ))}
             </div>
-            {  msg && <div>
-                { msg } 
+            {  msg && <div className='center-align'>
+                <h6>{ msg }</h6>
                 <button className='waves-effect waves-light btn red' onClick={reset}>Reset</button>
             </div> }
         </div>

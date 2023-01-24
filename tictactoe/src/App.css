@@ -8,3 +8,7 @@
   display: grid;
   grid-template-columns: 75px 75px 75px;
 }
+
+.App {
+  margin: 25vh 87vh;
+}
