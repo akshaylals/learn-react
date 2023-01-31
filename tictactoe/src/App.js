@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import './App.css';
+import Button from '@mui/material/Button';
+import { Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 
 function App() {
     const [arr, setArr] = useState([
@@ -11,6 +13,11 @@ function App() {
     const [player, setPlayer] = useState('X');
     const [msg, setMsg] = useState(null);
     const [count, setCount] = useState(0);
+    const [playerModalOpen, setPlayerModalOpen] = useState(true);
+    const [player1Name, setPlayer1Name] = useState('');
+    const [player2Name, setPlayer2Name] = useState('');
+    const [p1NameErr, setP1NameErr] = useState('');
+    const [p2NameErr, setP2NameErr] = useState('');
 
     const reset = () => {
         setArr([
@@ -21,6 +28,20 @@ function App() {
         setMsg(null);
         setPlayer('X');
         setCount(0);
+    }
+
+    const newGame = () => {
+        setArr([
+            [' ', ' ', ' '],
+            [' ', ' ', ' '],
+            [' ', ' ', ' '],
+        ]);
+        setMsg(null);
+        setPlayer('X');
+        setCount(0);
+        setPlayerModalOpen(true);
+        setPlayer1Name('');
+        setPlayer2Name('');
     }
 
     const calculate = () => {
@@ -41,9 +62,9 @@ function App() {
                 }
             }
             if (tx1 === 3 | tx2 === 3)
-                return "Player X wins";
+                return `${player1Name} wins`;
             if (ty1 === 3 | ty2 === 3)
-                return "Player O wins";
+                return `${player2Name} wins`;
         }
         var tx1 = 0, tx2 = 0, ty1 = 0, ty2 = 0;
         for (var i = 0; i < 3; i++){
@@ -57,9 +78,9 @@ function App() {
                 ty2++;
         }
         if (tx1 === 3 | tx2 === 3)
-            return "Player X wins";
+            return `${player1Name} wins`;
         if (ty1 === 3 | ty2 === 3)
-            return "Player O wins";
+            return `${player2Name} wins`;
         if(count >= 8)
             return 'Draw';
         return null;
@@ -76,25 +97,78 @@ function App() {
         }
     }
 
+    const handlePlayerModalClose = () => {
+        if (player1Name === ''){
+            setP1NameErr('Name cannot be empty');
+            return;
+        }else{
+            setP1NameErr('');
+        }
+        if (player2Name === ''){
+            setP2NameErr('Name cannot be empty');
+            return;
+        }else{
+            setP2NameErr('');
+        }
+        setPlayerModalOpen(false);
+    }
+
 
     return (
         <div className="App">
-            <h4 className='center-align'>Player: { player }</h4>
-            <div className="buttons">
-                { arr.map((row, i) => (
-                    <div key={i}>
-                        { row.map((col, j) => (
-                            <div key={j}>
-                                <button disabled={arr[i][j] !== ' '} className='waves-effect waves-light btn blue button' onClick={() => playerMove(i, j)}>{ arr[i][j] }</button>
-                            </div>
-                        ))}
-                    </div>
-                ))}
-            </div>
-            {  msg && <div className='center-align'>
-                <h6>{ msg }</h6>
-                <button className='waves-effect waves-light btn red' onClick={reset}>Reset</button>
+            { (!playerModalOpen) && <div>
+                <h4 className='center-align'>{ player1Name } vs { player2Name }</h4>
+                <h4 className='center-align'>Player: { player === 'X' ? player1Name : player2Name } ({ player })</h4>
+                <div className="buttons">
+                    { arr.map((row, i) => (
+                        <div key={i}>
+                            { row.map((col, j) => (
+                                <div key={j}>
+                                    <Button variant="contained" disabled={arr[i][j] !== ' '} className='button' onClick={() => playerMove(i, j)}>{ arr[i][j] }</Button>
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+                { msg && <div className='center-align'>
+                    <h6>{ msg }</h6>
+                    <Button variant="contained" onClick={ reset }>Reset</Button>
+                    <Button variant="contained" onClick={ newGame }>New Game</Button>
+                </div>}
             </div> }
+
+            <Dialog open={playerModalOpen} onClose={handlePlayerModalClose}>
+                <DialogTitle>Enter Player Details</DialogTitle>
+                <DialogContent>
+                    
+                    <TextField autoFocus
+                            value={player1Name}
+                            margin='dense'
+                            id='player1'
+                            label='Player 1'
+                            type='text'
+                            fullWidth
+                            variant='standard'
+                            error={p1NameErr !== ''}
+                            helperText={p1NameErr}
+                            onChange={(e) => { setPlayer1Name(e.target.value) }} />
+
+                    <TextField margin='dense'
+                            value={player2Name}
+                            id='player2'
+                            label='Player 2'
+                            type='text'
+                            fullWidth
+                            variant='standard'
+                            error={p2NameErr !== ''}
+                            helperText={p2NameErr}
+                            onChange={(e) => { setPlayer2Name(e.target.value) }} />
+
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={ handlePlayerModalClose }>Start</Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }
