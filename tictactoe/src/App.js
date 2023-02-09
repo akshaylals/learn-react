@@ -110,6 +110,7 @@ function App() {
                             <TableRow>
                                 <TableCell>Player 1</TableCell>
                                 <TableCell>Player 2</TableCell>
+                                <TableCell>Winner</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -117,6 +118,7 @@ function App() {
                                     <TableRow key={row.id}>
                                         <TableCell>{ row.player1 }</TableCell>
                                         <TableCell>{ row.player2 }</TableCell>
+                                        <TableCell>{ row.winner }</TableCell>
                                     </TableRow>
                                 )
                             )}
