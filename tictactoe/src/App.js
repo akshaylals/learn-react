@@ -1,101 +1,23 @@
 import { useState } from 'react';
 import './App.css';
 import Button from '@mui/material/Button';
-import { Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogTitle, Table, TableBody, TableCell, TableHead, TableRow, TextField } from '@mui/material';
+import axios from 'axios';
+import Game from './components/Game';
 
 function App() {
-    const [arr, setArr] = useState([
-        [' ', ' ', ' '],
-        [' ', ' ', ' '],
-        [' ', ' ', ' '],
-    ]);
+    const endpoint = 'https://63d89fa4baa0f79e09ab817e.mockapi.io/winners';
 
-    const [player, setPlayer] = useState('X');
-    const [msg, setMsg] = useState(null);
-    const [count, setCount] = useState(0);
     const [playerModalOpen, setPlayerModalOpen] = useState(true);
     const [player1Name, setPlayer1Name] = useState('');
     const [player2Name, setPlayer2Name] = useState('');
     const [p1NameErr, setP1NameErr] = useState('');
     const [p2NameErr, setP2NameErr] = useState('');
 
-    const reset = () => {
-        setArr([
-            [' ', ' ', ' '],
-            [' ', ' ', ' '],
-            [' ', ' ', ' '],
-        ]);
-        setMsg(null);
-        setPlayer('X');
-        setCount(0);
-    }
+    const [winnersModalOpen, setWinnersModalOpen] = useState(false);
+    const [winners, setWinners] = useState([]);
 
-    const newGame = () => {
-        setArr([
-            [' ', ' ', ' '],
-            [' ', ' ', ' '],
-            [' ', ' ', ' '],
-        ]);
-        setMsg(null);
-        setPlayer('X');
-        setCount(0);
-        setPlayerModalOpen(true);
-        setPlayer1Name('');
-        setPlayer2Name('');
-    }
-
-    const calculate = () => {
-        for (var i = 0; i < 3; i++){
-            var tx1 = 0, tx2 = 0, ty1 = 0, ty2 = 0;
-            for (var j = 0; j < 3; j++){
-                if (arr[i][j] === 'X'){
-                    tx1++;
-                }
-                if (arr[j][i] === 'X'){
-                    tx2++;
-                }
-                if (arr[i][j] === 'O'){
-                    ty1++;
-                }
-                if (arr[j][i] === 'O'){
-                    ty2++;
-                }
-            }
-            if (tx1 === 3 | tx2 === 3)
-                return `${player1Name} wins`;
-            if (ty1 === 3 | ty2 === 3)
-                return `${player2Name} wins`;
-        }
-        var tx1 = 0, tx2 = 0, ty1 = 0, ty2 = 0;
-        for (var i = 0; i < 3; i++){
-            if (arr[i][i] === 'X')
-                tx1++;
-            if (arr[i][i] === 'O')
-                ty1++;
-            if (arr[i][2 - i] === 'X')
-                tx2++;
-            if (arr[i][2 - i] === 'O')
-                ty2++;
-        }
-        if (tx1 === 3 | tx2 === 3)
-            return `${player1Name} wins`;
-        if (ty1 === 3 | ty2 === 3)
-            return `${player2Name} wins`;
-        if(count >= 8)
-            return 'Draw';
-        return null;
-    }
-
-    const playerMove = (i, j) => {
-        if (arr[i][j] === ' ' & msg === null){
-            setCount(count + 1);
-            let tmp = [...arr];
-            tmp[i][j] = player;
-            setArr(tmp);
-            setMsg(calculate());
-            setPlayer((player === 'X') ? 'O' : 'X');
-        }
-    }
+    
 
     const handlePlayerModalClose = () => {
         if (player1Name === ''){
@@ -113,31 +35,41 @@ function App() {
         setPlayerModalOpen(false);
     }
 
+    const handleWinnerModalOpen = async () => {
+        var response = await axios.get(endpoint);
+        if (response.status == 200){
+            setWinners(response.data);
+            console.log(response.data);
+            setWinnersModalOpen(true);
+        }
+    }
+
+    const sendToDb = (player) => {
+        var value = ''
+        if (player !== 'Draw'){
+            value = (player === 'X') ? player1Name : player2Name;
+        }else{
+            value = 'Draw';
+        }
+        axios.post(endpoint, {
+            "player1": player1Name,
+            "player2": player2Name,
+            "winner": value
+        },
+        {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+
 
     return (
         <div className="App">
-            { (!playerModalOpen) && <div>
-                <h4 className='center-align'>{ player1Name } vs { player2Name }</h4>
-                <h4 className='center-align'>Player: { player === 'X' ? player1Name : player2Name } ({ player })</h4>
-                <div className="buttons">
-                    { arr.map((row, i) => (
-                        <div key={i}>
-                            { row.map((col, j) => (
-                                <div key={j}>
-                                    <Button variant="contained" disabled={arr[i][j] !== ' '} className='button' onClick={() => playerMove(i, j)}>{ arr[i][j] }</Button>
-                                </div>
-                            ))}
-                        </div>
-                    ))}
-                </div>
-                { msg && <div className='center-align'>
-                    <h6>{ msg }</h6>
-                    <Button variant="contained" onClick={ reset }>Reset</Button>
-                    <Button variant="contained" onClick={ newGame }>New Game</Button>
-                </div>}
-            </div> }
-
-            <Dialog open={playerModalOpen} onClose={handlePlayerModalClose}>
+            <Button variant='contained' onClick={ handleWinnerModalOpen }>Winners</Button>
+            { (!playerModalOpen) && <Game player1Name={player1Name} player2Name={player2Name} onGameOver={sendToDb} /> }
+            
+            <Dialog open={ playerModalOpen }>
                 <DialogTitle>Enter Player Details</DialogTitle>
                 <DialogContent>
                     
@@ -167,6 +99,33 @@ function App() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={ handlePlayerModalClose }>Start</Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={ winnersModalOpen }>
+                <DialogTitle>Winners</DialogTitle>
+                <DialogContent>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Player 1</TableCell>
+                                <TableCell>Player 2</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            { winners.map((row) => (
+                                    <TableRow key={row.id}>
+                                        <TableCell>{ row.player1 }</TableCell>
+                                        <TableCell>{ row.player2 }</TableCell>
+                                    </TableRow>
+                                )
+                            )}
+                        </TableBody>
+                    </Table>
+                </DialogContent>
+
+                <DialogActions>
+                    <Button onClick={ () => { setWinnersModalOpen(false) } }>Close</Button>
                 </DialogActions>
             </Dialog>
         </div>
